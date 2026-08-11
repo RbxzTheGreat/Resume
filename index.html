@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arbaz Atiq — Multimedia Creator & Video Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;800&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171a;
+    --surface:#1b1f23;
+    --surface-2:#20252a;
+    --line:#2b3136;
+    --text:#ece9e2;
+    --muted:#8a9099;
+    --orange:#ff6a3d;
+    --teal:#2fd9c4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Sarabun',sans-serif;
+    font-weight:300;
+    line-height:1.7;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{
+    font-family:'Kanit',sans-serif;
+    letter-spacing:0.01em;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+  }
+
+  /* ---- timeline scrub bar (signature element) ---- */
+  #scrub-track{
+    position:fixed; top:0; left:0; width:100%; height:34px;
+    background:rgba(20,23,26,0.92);
+    backdrop-filter:blur(6px);
+    z-index:100;
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:flex-end;
+  }
+  #scrub-fill-row{
+    position:relative; width:100%; height:4px; background:var(--surface-2);
+  }
+  #scrub-fill{
+    position:absolute; top:0; left:0; height:100%;
+    background:linear-gradient(90deg,var(--teal),var(--orange));
+    width:0%;
+  }
+  #playhead{
+    position:absolute; top:-9px; left:0%;
+    transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center;
+    pointer-events:none;
+  }
+  #playhead .code{
+    font-family:'Kanit',sans-serif; font-size:10px; color:var(--orange);
+    background:var(--bg); padding:1px 5px; border-radius:2px; margin-bottom:2px;
+    white-space:nowrap; border:1px solid var(--line);
+  }
+  #playhead .dot{
+    width:10px;height:10px;border-radius:50%;background:var(--orange);
+    box-shadow:0 0 8px rgba(255,106,61,0.7);
+  }
+  .marker{
+    position:absolute; top:0; width:1px; height:100%; background:var(--teal); opacity:0.5;
+  }
+
+  section{
+    max-width:860px; margin:0 auto; padding:140px 28px 60px;
+  }
+  #hero{padding-top:170px;}
+  .hero-grid{display:flex; gap:48px; align-items:flex-start; justify-content:space-between;}
+  .hero-text{flex:1; min-width:0;}
+  .photo-frame{
+    position:relative; width:168px; height:168px; flex-shrink:0;
+    border-radius:8px; background:var(--surface);
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden; cursor:pointer;
+  }
+  .photo-frame img{width:100%; height:100%; object-fit:cover; display:block;}
+  .photo-frame .placeholder-inner{
+    display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--muted);
+    font-family:'Kanit',sans-serif; font-size:11px; letter-spacing:0.08em; text-align:center; padding:0 14px;
+  }
+  .photo-frame .placeholder-inner svg{opacity:0.55;}
+  .frame-corner{position:absolute; width:14px; height:14px; border-color:var(--orange); opacity:0.85;}
+  .frame-corner.tl{top:8px; left:8px; border-top:2px solid; border-left:2px solid;}
+  .frame-corner.tr{top:8px; right:8px; border-top:2px solid; border-right:2px solid;}
+  .frame-corner.bl{bottom:8px; left:8px; border-bottom:2px solid; border-left:2px solid;}
+  .frame-corner.br{bottom:8px; right:8px; border-bottom:2px solid; border-right:2px solid;}
+  .rec-tag{
+    position:absolute; top:8px; left:50%; transform:translateX(-50%);
+    font-family:'Kanit',sans-serif; font-size:9px; letter-spacing:0.1em; color:var(--teal);
+    display:flex; align-items:center; gap:4px; background:rgba(20,23,26,0.75); padding:2px 7px; border-radius:100px;
+  }
+  .rec-tag .d{width:5px;height:5px;border-radius:50%; background:var(--teal);}
+  @media (max-width:640px){
+    .hero-grid{flex-direction:column-reverse; align-items:flex-start;}
+  }
+
+  .eyebrow{
+    font-family:'Kanit',sans-serif; font-size:12px; letter-spacing:0.28em;
+    color:var(--teal); text-transform:uppercase; margin-bottom:18px; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--teal);}
+
+  #hero h1{
+    font-size:clamp(42px,8vw,80px);
+    font-weight:800;
+    color:var(--text);
+    line-height:1.02;
+  }
+  #hero .role{
+    font-family:'Kanit',sans-serif; font-weight:400; font-size:clamp(16px,2.4vw,22px);
+    color:var(--orange); margin-top:14px;
+  }
+  #hero .role-en{
+    color:var(--muted); font-size:14px; font-family:'Sarabun',sans-serif; margin-top:4px;
+  }
+  #hero p.summary{
+    max-width:620px; margin-top:28px; color:#c9c6bf; font-size:16px;
+  }
+
+  .contact-row{
+    display:flex; flex-wrap:wrap; gap:10px; margin-top:34px;
+  }
+  .chip{
+    font-family:'Kanit',sans-serif; font-size:13px; color:var(--muted);
+    border:1px solid var(--line); padding:8px 14px; border-radius:100px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .chip .k{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+
+  /* section headers styled as timeline clip labels */
+  .clip-label{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'Kanit',sans-serif; font-size:13px; letter-spacing:0.18em;
+    color:var(--muted); text-transform:uppercase; margin-bottom:22px;
+  }
+  .clip-label .tc{color:var(--orange); font-weight:600;}
+  .clip-label::after{content:"";flex:1;height:1px;background:var(--line); min-width:40px;}
+  .section-title{font-size:clamp(26px,4vw,36px); font-weight:700; margin-bottom:6px;}
+
+  /* ---- stat / growth block ---- */
+  #stat{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:44px 36px;
+    margin-top:10px;
+  }
+  .stat-bar-wrap{margin-top:26px;}
+  .stat-labels{display:flex; justify-content:space-between; font-family:'Kanit',sans-serif; font-size:13px; color:var(--muted); margin-bottom:8px;}
+  .stat-labels b{color:var(--text); font-size:15px;}
+  .stat-track{height:10px; background:var(--surface-2); border-radius:6px; overflow:hidden; border:1px solid var(--line);}
+  .stat-track-fill{height:100%; width:0%; background:linear-gradient(90deg,var(--teal),var(--orange)); border-radius:6px; transition:width 1.4s cubic-bezier(.2,.8,.2,1);}
+  .stat-caption{margin-top:16px; color:#c9c6bf; font-size:15px;}
+  .stat-caption b{color:var(--orange);}
+
+  /* ---- skills grid ---- */
+  .skills-grid{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:8px;
+  }
+  @media (max-width:600px){.skills-grid{grid-template-columns:1fr;}}
+  .skill-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:24px; position:relative; overflow:hidden;
+  }
+  .skill-card::before{
+    content:""; position:absolute; left:0; top:0; height:100%; width:3px;
+    background:var(--teal);
+  }
+  .skill-card:nth-child(2n)::before{background:var(--orange);}
+  .skill-card h3{font-size:17px; font-weight:600; margin-bottom:12px;}
+  .tag-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .tag{
+    font-size:12.5px; font-family:'Kanit',sans-serif; color:var(--muted);
+    border:1px solid var(--line); padding:5px 10px; border-radius:6px;
+  }
+
+  /* ---- experience ---- */
+  .exp-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:30px; position:relative;
+  }
+  .exp-head{display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;}
+  .exp-head h3{font-size:20px; font-weight:700;}
+  .exp-head .role{font-family:'Sarabun',sans-serif; color:var(--muted); font-size:14px; margin-top:4px;}
+  .in-out{
+    font-family:'Kanit',sans-serif; font-size:11px; color:var(--teal);
+    border:1px solid var(--teal); border-radius:100px; padding:4px 10px; white-space:nowrap;
+  }
+  .exp-card ul{margin-top:18px; padding-left:0; list-style:none;}
+  .exp-card li{
+    position:relative; padding-left:20px; margin-bottom:12px; color:#c9c6bf; font-size:15px;
+  }
+  .exp-card li::before{
+    content:"▸"; position:absolute; left:0; color:var(--orange); font-size:13px;
+  }
+  .highlight-metric{
+    display:inline-block; font-family:'Kanit',sans-serif; color:var(--orange); font-weight:600;
+  }
+
+  /* ---- education (real chronological order → timecodes) ---- */
+  .edu-row{
+    display:flex; gap:20px; padding:18px 0; border-bottom:1px solid var(--line);
+  }
+  .edu-row:last-child{border-bottom:none;}
+  .edu-tc{
+    font-family:'Kanit',sans-serif; font-size:13px; color:var(--muted); min-width:64px; padding-top:2px;
+  }
+  .edu-body h3{font-size:16px; font-weight:600;}
+  .edu-body p{color:var(--muted); font-size:14px; margin-top:3px;}
+
+  footer{
+    max-width:860px; margin:0 auto; padding:60px 28px 100px;
+    border-top:1px solid var(--line); margin-top:40px;
+  }
+  footer .eyebrow{margin-bottom:24px;}
+  footer .contact-row .chip{font-size:14px; padding:10px 16px;}
+  footer .end{margin-top:40px; font-family:'Kanit',sans-serif; font-size:12px; color:var(--muted); letter-spacing:0.1em;}
+
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity 0.7s ease, transform 0.7s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="scrub-track">
+  <div id="scrub-fill-row">
+    <div id="scrub-fill"></div>
+    <div id="playhead"><span class="code">00:00</span><span class="dot"></span></div>
+  </div>
+</div>
+
+<section id="hero">
+  <div class="hero-grid">
+    <div class="hero-text">
+      <div class="eyebrow">Showreel Profile</div>
+      <h1>Arbaz Atiq</h1>
+      <div class="role">มัลติมีเดียครีเอเตอร์ &amp; วิดีโอเอดิเตอร์ — ผู้เชี่ยวชาญงานครบวงจร</div>
+      <div class="role-en">Multimedia Creator &amp; Video Editor (End-to-End Specialist)</div>
+      <p class="summary">
+        นักสร้างสรรค์สื่อดิจิทัลแบบครบวงจร ผู้เชี่ยวชาญการผลิตสื่อตั้งแต่กระบวนการคิดสร้างสรรค์ การถ่ายทำ ไปจนถึงการตัดต่อและแต่งภาพ
+        มีประสบการณ์สร้างผลงานที่เปลี่ยนยอดวิวจากหลักหมื่นสู่หลักแสน ด้วยทักษะที่หลากหลายพร้อมรับมือทุกขั้นตอนการทำงานเพียงลำพัง
+        เพื่อให้ได้งานที่ตรงใจและรวดเร็ว
+      </p>
+      <div class="contact-row">
+        <div class="chip"><span class="k"></span>061-982-6172</div>
+        <div class="chip"><span class="k"></span>abbidon6@gmail.com</div>
+        <div class="chip"><span class="k"></span>[ลิงก์ Portfolio / Showreel]</div>
+      </div>
+    </div>
+    <div class="photo-frame">
+      <div class="rec-tag"><span class="d"></span>PROFILE</div>
+      <div class="frame-corner tl"></div>
+      <div class="frame-corner tr"></div>
+      <div class="frame-corner bl"></div>
+      <div class="frame-corner br"></div>
+      <div class="placeholder-inner" id="photoPlaceholder">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg>
+        คลิกเพื่อใส่รูป
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none;">
+    </div>
+  </div>
+</section>
+
+<section id="stat" class="reveal">
+  <div class="clip-label"><span class="tc">CLIP_01</span> ผลลัพธ์ที่วัดผลได้</div>
+  <div class="section-title">จากหลักหมื่น สู่หลักแสน</div>
+  <div class="stat-bar-wrap">
+    <div class="stat-labels"><span>ยอดวิวเฉลี่ยเดิม — <b>12,000</b></span><span>ยอดวิวสูงสุด — <b>800,000</b></span></div>
+    <div class="stat-track"><div class="stat-track-fill" id="statFill"></div></div>
+  </div>
+  <p class="stat-caption">ยกระดับคุณภาพการผลิตและการนำเสนอคอนเทนต์ จนสามารถเพิ่มยอดผู้ชมได้ถึง <b>66 เท่า</b> ต่อคลิป</p>
+</section>
+
+<section id="skills" class="reveal">
+  <div class="clip-label"><span class="tc">CLIP_02</span> ทักษะหลัก</div>
+  <div class="section-title" style="margin-bottom:22px;">Core Skills</div>
+  <div class="skills-grid">
+    <div class="skill-card">
+      <h3>Video Editing</h3>
+      <div class="tag-row">
+        <span class="tag">Adobe Premiere Pro</span>
+        <span class="tag">DaVinci Resolve</span>
+        <span class="tag">Final Cut Pro</span>
+      </div>
+    </div>
+    <div class="skill-card">
+      <h3>Motion Graphics &amp; VFX</h3>
+      <div class="tag-row">
+        <span class="tag">Adobe After Effects</span>
+      </div>
+    </div>
+    <div class="skill-card">
+      <h3>Production</h3>
+      <div class="tag-row">
+        <span class="tag">การถ่ายภาพ</span>
+        <span class="tag">การจัดไฟ</span>
+        <span class="tag">การบันทึกเสียง</span>
+      </div>
+    </div>
+    <div class="skill-card">
+      <h3>Creative Workflow</h3>
+      <div class="tag-row">
+        <span class="tag">การคิดคอนเทนต์</span>
+        <span class="tag">วางแผนงานสื่อ</span>
+        <span class="tag">จัดการโปรดักชั่นครบวงจร</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="experience" class="reveal">
+  <div class="clip-label"><span class="tc">CLIP_03</span> ประสบการณ์ทำงาน</div>
+  <div class="section-title" style="margin-bottom:22px;">Work Experience</div>
+  <div class="exp-card">
+    <div class="exp-head">
+      <div>
+        <h3>Goodmood Media</h3>
+        <div class="role">Creative, Videographer &amp; Editor</div>
+      </div>
+      <div class="in-out">IN — OUT</div>
+    </div>
+    <ul>
+      <li>ดูแลกระบวนการผลิตสื่อตั้งแต่การคิดไอเดีย วางคอนเซปต์ ถ่ายทำ จนถึงตัดต่อชิ้นงานสำเร็จแบบครบวงจร (End-to-End Workflow)</li>
+      <li>พัฒนาคุณภาพการผลิตและการนำเสนอคอนเทนต์ จนสามารถยกระดับยอดผู้ชมจากเดิมเฉลี่ยที่ <span class="highlight-metric">12,000 วิว</span> ต่อคลิป สู่ระดับยอดวิวสูงสุดถึง <span class="highlight-metric">800,000 วิว</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="education" class="reveal">
+  <div class="clip-label"><span class="tc">CLIP_04</span> ประวัติการศึกษา</div>
+  <div class="section-title" style="margin-bottom:10px;">Education</div>
+  <div>
+    <div class="edu-row">
+      <div class="edu-tc">ปัจจุบัน</div>
+      <div class="edu-body">
+        <h3>ปริญญาตรี — สาขาดิจิทัลมีเดีย</h3>
+        <p>คณะวิทยาศาสตร์และเทคโนโลยี, มหาวิทยาลัยธนบุรี</p>
+      </div>
+    </div>
+    <div class="edu-row">
+      <div class="edu-tc">ปวส.</div>
+      <div class="edu-body">
+        <h3>วิทยาลัยเทคโนโลยีฐานเทคโนโลยี</h3>
+      </div>
+    </div>
+    <div class="edu-row">
+      <div class="edu-tc">ม.ปลาย</div>
+      <div class="edu-body">
+        <h3>โรงเรียนอิสลามวิทยาลัยแห่งประเทศไทย</h3>
+      </div>
+    </div>
+    <div class="edu-row">
+      <div class="edu-tc">ม.ต้น–ประถม</div>
+      <div class="edu-body">
+        <h3>โรงเรียนอิสลามสันติชน</h3>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="eyebrow">End Credits</div>
+  <div class="section-title" style="font-size:24px;">พร้อมร่วมงานในโปรเจกต์ถัดไป</div>
+  <div class="contact-row">
+    <div class="chip"><span class="k"></span>061-982-6172</div>
+    <div class="chip"><span class="k"></span>abbidon6@gmail.com</div>
+    <div class="chip"><span class="k"></span>[ลิงก์ Portfolio / Showreel]</div>
+  </div>
+  <div class="end">ARBAZ ATIQ — MULTIMEDIA CREATOR &amp; VIDEO EDITOR</div>
+</footer>
+
+<script>
+  // scrub / timeline progress
+  const fill = document.getElementById('scrub-fill');
+  const playhead = document.getElementById('playhead');
+  const code = playhead.querySelector('.code');
+
+  function fmt(sec){
+    const m = Math.floor(sec/60).toString().padStart(2,'0');
+    const s = Math.floor(sec%60).toString().padStart(2,'0');
+    return m+':'+s;
+  }
+
+  function onScroll(){
+    const h = document.documentElement;
+    const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight || 1);
+    const pct = Math.min(Math.max(scrolled*100,0),100);
+    fill.style.width = pct + '%';
+    playhead.style.left = pct + '%';
+    code.textContent = fmt(pct * 1.2); // symbolic runtime
+  }
+  document.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  // profile photo upload preview
+  const photoFrame = document.querySelector('.photo-frame');
+  const photoInput = document.getElementById('photoInput');
+  const photoPlaceholder = document.getElementById('photoPlaceholder');
+  photoFrame.addEventListener('click', ()=> photoInput.click());
+  photoInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      let img = photoFrame.querySelector('img');
+      if(!img){
+        img = document.createElement('img');
+        photoFrame.insertBefore(img, photoFrame.firstChild);
+      }
+      img.src = ev.target.result;
+      photoPlaceholder.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:0.15});
+  reveals.forEach(el=>io.observe(el));
+
+  // stat bar fill once visible
+  const statFill = document.getElementById('statFill');
+  const statIO = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ statFill.style.width = '92%'; statIO.unobserve(e.target); }
+    });
+  }, {threshold:0.4});
+  statIO.observe(document.getElementById('stat'));
+</script>
+
+</body>
+</html>
